@@ -1537,6 +1537,16 @@ function OnboardingTour({ lang, onSetTab, onGenerateForecast, chatbotRef, onOpen
         @keyframes tourPulseRing { 0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); } 50% { box-shadow: 0 0 0 8px rgba(16,185,129,0); } }
       `}</style>
 
+      {/* Fixed Skip Tour button — always accessible */}
+      <button onClick={skip} style={{
+        position: 'fixed', top: 16, right: 16, zIndex: 99999,
+        background: 'rgba(30,41,59,0.95)', border: '1px solid #475569',
+        color: '#94a3b8', padding: '8px 16px', borderRadius: 8,
+        cursor: 'pointer', fontSize: 13, backdropFilter: 'blur(8px)',
+      }}>
+        {isEN() ? '\u2715 Skip Tour' : '\u2715 Saltar Tour'}
+      </button>
+
       {/* Backdrop */}
       <div style={{
         position: 'fixed', inset: 0, zIndex: 10000,
@@ -1630,17 +1640,30 @@ function OnboardingTour({ lang, onSetTab, onGenerateForecast, chatbotRef, onOpen
             </div>
           </div>
         ) : (
-          // Positioned tooltip near spotlight
-          <div style={{
-            position: 'absolute',
-            top: spotlightRect ? spotlightRect.top + spotlightRect.height + 16 : '50%',
-            left: spotlightRect ? Math.min(Math.max(spotlightRect.left, 20), window.innerWidth - 420) : '50%',
-            ...(spotlightRect ? {} : { transform: 'translate(-50%,-50%)' }),
-            width: 400, maxWidth: '90vw',
-            background: '#0D1117', border: '1px solid rgba(16,185,129,0.3)',
-            borderRadius: 14, padding: '20px 22px', boxShadow: '0 12px 48px rgba(0,0,0,0.5)',
-            animation: 'tourFadeIn 0.3s ease',
-          }}>
+          // Positioned tooltip near spotlight with viewport clamping
+          <div style={(() => {
+            const tooltipH = 200, tooltipW = 400, vpPad = 16;
+            if (!spotlightRect) {
+              return { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: tooltipW, maxWidth: '90vw', background: '#0D1117', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 14, padding: '20px 22px', boxShadow: '0 12px 48px rgba(0,0,0,0.5)', animation: 'tourFadeIn 0.3s ease' };
+            }
+            const roomBelow = window.innerHeight - (spotlightRect.top + spotlightRect.height);
+            const roomAbove = spotlightRect.top;
+            let ttStyle;
+            if (roomBelow >= tooltipH + vpPad + 16) {
+              let ttTop = spotlightRect.top + spotlightRect.height + 16;
+              let ttLeft = Math.max(vpPad, Math.min(spotlightRect.left, window.innerWidth - tooltipW - vpPad));
+              ttTop = Math.max(vpPad, Math.min(window.innerHeight - tooltipH - vpPad, ttTop));
+              ttStyle = { position: 'absolute', top: ttTop, left: ttLeft };
+            } else if (roomAbove >= tooltipH + vpPad + 16) {
+              let ttTop = spotlightRect.top - tooltipH - 16;
+              let ttLeft = Math.max(vpPad, Math.min(spotlightRect.left, window.innerWidth - tooltipW - vpPad));
+              ttTop = Math.max(vpPad, Math.min(window.innerHeight - tooltipH - vpPad, ttTop));
+              ttStyle = { position: 'absolute', top: ttTop, left: ttLeft };
+            } else {
+              ttStyle = { position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', top: 'auto', zIndex: 10001 };
+            }
+            return { ...ttStyle, width: tooltipW, maxWidth: '90vw', background: '#0D1117', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 14, padding: '20px 22px', boxShadow: '0 12px 48px rgba(0,0,0,0.5)', animation: 'tourFadeIn 0.3s ease' };
+          })()}>
             <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#10B981' }}>
               {currentStep.title[tourLang.current]}
             </h3>
