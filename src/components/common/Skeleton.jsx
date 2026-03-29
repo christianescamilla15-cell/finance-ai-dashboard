@@ -1,0 +1,13 @@
+// ─── SKELETON PLACEHOLDER ────────────────────────────────────────────────────
+
+export function Skeleton({ width = "100%", height = 16, style: extraStyle = {} }) {
+  return (
+    <div aria-hidden="true" role="presentation" style={{
+      width, height, borderRadius: 6,
+      background: "linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%)",
+      backgroundSize: "200% 100%",
+      animation: "shimmer 1.5s infinite",
+      ...extraStyle,
+    }} />
+  );
+}
